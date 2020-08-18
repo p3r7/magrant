@@ -1,3 +1,12 @@
+;;; magrant-box.el --- Emacs interface to Vagrant commands on boxes  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2019-2020 Jordan Besly
+
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+
+;;; Code:
 
 
 
@@ -100,7 +109,7 @@ and FLIP is a boolean to specify the sort order."
 
 ;; TRANSIENT: ENTRY POINT
 
-(define-transient-command magrant-box-help ()
+(transient-define-prefix magrant-box-help ()
   "Help transient for vagrant boxes."
   ["Vagrant boxes help"
    ("A" "Add"        magrant-box-add)
@@ -111,7 +120,7 @@ and FLIP is a boolean to specify the sort order."
    ;; ("R" "Repackage"  magrant-box-repackage)
    ("l" "List"       magrant-box-list)])
 
-(define-transient-command magrant-box-list ()
+(transient-define-prefix magrant-box-list ()
   "Transient for listing boxes."
   :man-page "magrant-box-list"
   ["Arguments"
@@ -125,7 +134,7 @@ and FLIP is a boolean to specify the sort order."
 
 ;; TRANSIENT: ADD
 
-(define-transient-command magrant-box-add ()
+(transient-define-prefix magrant-box-add ()
   "Transient for adding boxes."
   :man-page "magrant-box-add"
   ["Validation arguments"
@@ -134,52 +143,51 @@ and FLIP is a boolean to specify the sort order."
   [:description "Actions"
                 ("N" "Add a new image" magrant-box-add-one)])
 
-(defun magrant-box-add-one (name &optional args)
-  "Add the box named NAME."
+(defun magrant-box-add-one (name args)
+  "Add the box named NAME.
+Additional ARGS are retrieved through transient."
   (interactive (list (magrant-box-read-name)
-                     (transient-args current-transient-command)))
+                     (transient-args transient-current-command)))
   (magrant-run-vagrant-async
    "box add"
    (concat "*vagrant box add - " name "*")
-   transient-args
+   args
    name))
 
 
 
 ;; TRANSIENT: REMOVE
 
-(magrant-utils-define-transient-command
- magrant-box-remove ()
- "Transient for removing boxes."
- :man-page "magrant-box-remove"
- ["Filter arguments"
-  ("-p" "Provider" "--provider " read-string)
-  ("-v" "Version" "--box-version " read-string)
-  ("-a" "All versions" "--all")]
- ["Tune arguments"
-  ("-f" "Force" "-f")]
- [:description magrant-utils-generic-actions-heading
-               ("D" "Remove" magrant-utils-generic-action)])
+(magrant-utils-transient-define-prefix magrant-box-remove ()
+  "Transient for removing boxes."
+  :man-page "magrant-box-remove"
+  ["Filter arguments"
+   ("-p" "Provider" "--provider " read-string)
+   ("-v" "Version" "--box-version " read-string)
+   ("-a" "All versions" "--all")]
+  ["Tune arguments"
+   ("-f" "Force" "-f")]
+  [:description magrant-utils-generic-actions-heading
+                ("D" "Remove" magrant-utils-generic-action)])
 
 
 
 ;; TRANSIENT: UPDATE
 
-(magrant-utils-define-transient-command
- magrant-box-update ()
- "Transient for updating boxes."
- :man-page "magrant-box-update"
- ["Filter arguments"
-  ("-p" "Provider" "--provider " read-string)]
- ["Validation arguments"
-  ("-i" "Insecure" "--insecure")
-  ("-cert" "SSL certificate file" "--cert " read-string)
-  ("-caf" "CA certificate file" "--cacert " read-string)
-  ("-cad" "CA certificate dir" "--capath " read-string)]
- ["Tune arguments"
-  ("-f" "Force" "-f")]
- [:description magrant-utils-generic-actions-heading
-               ("U" "Update" magrant-box--update-action)])
+(magrant-utils-transient-define-prefix magrant-box-update ()
+  "Transient for updating boxes."
+  :man-page "magrant-box-update"
+  ["Filter arguments"
+   ("-p" "Provider" "--provider " read-string)]
+  ["Validation arguments"
+   ("-i" "Insecure" "--insecure")
+   ("-cert" "SSL certificate file" "--cert " read-string)
+   ("-caf" "CA certificate file" "--cacert " read-string)
+   ("-cad" "CA certificate dir" "--capath " read-string)]
+  ["Tune arguments"
+   ("-f" "Force" "-f")]
+  [:description magrant-utils-generic-actions-heading
+                ("U" "Update" magrant-box--update-action)])
 
 (defun magrant-box--update-action ()
   "Update selected boxes."
@@ -201,3 +209,5 @@ and FLIP is a boolean to specify the sort order."
 
 
 (provide 'magrant-box)
+
+;;; magrant-box.el ends here

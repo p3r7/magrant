@@ -1,3 +1,12 @@
+;;; magrant-box.el --- Core utils for magrant  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2019-2020 Jordan Besly
+
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+
+;;; Code:
 
 
 
@@ -25,7 +34,7 @@
 ;; TRANSIENT
 
 ;;;###autoload (autoload 'magrant "magrant" nil t)
-(define-transient-command magrant ()
+(transient-define-prefix magrant ()
   "Transient for vagrant."
   :man-page "magrant"
   ["Vagrant"
@@ -46,7 +55,7 @@
     (friendly-shell-command-to-string command)))
 
 (defun magrant-run-vagrant-async (action buffer &rest args)
-  "Execute \"`magrant-command' ACTION ARGS\"."
+  "Execute \"`magrant-command' ACTION ARGS\" asynchronously, outputting into BUFFER."
   (let* ((command (s-join " " (-remove 's-blank? (-flatten (list magrant-command action args))))))
     (message command)
     (friendly-shell-command-async command
@@ -56,3 +65,5 @@
 
 
 (provide 'magrant-core)
+
+;;; magrant-core.el ends here

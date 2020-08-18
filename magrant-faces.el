@@ -1,3 +1,12 @@
+;;; magrant-faces.el --- Faces for magrant  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2019-2020 Jordan Besly
+
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+
+;;; Code:
 
 
 
@@ -33,3 +42,5 @@
 
 
 (provide 'magrant-faces)
+
+;;; magrant-faces.el ends here

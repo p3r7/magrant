@@ -1,3 +1,12 @@
+;;; magrant-machine.el --- Emacs interface to Vagrant commands on machines  -*- lexical-binding: t -*-
+
+;; Copyright (C) 2019-2020 Jordan Besly
+
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+
+;;; Code:
 
 
 
@@ -36,23 +45,11 @@ and FLIP is a boolean to specify the sort order."
                (choice (const :tag "Ascending" nil)
                        (const :tag "Descending" t))))
 
-
-;; FACES
-
-(defun magrant-machine-state-face (statE)
-  "Return the correct face according to STATE."
-  (cond
-   ((s-equals? "running" status)
-    'magrant-face-status-up)
-   ((s-equals? "poweroff" status)
-    'magrant-face-status-down)
-   ((s-equals? "saved" status)          ; suspended
-    'magrant-face-status-other)
-   (t
-    'magrant-face-status-other)))
 
 
 ;; CLI CALLS
+
+;; TODO: use --prune if buffer already exists
 
 (defun magrant-machine-refresh ()
   "Refresh the machines list."
@@ -74,10 +71,24 @@ and FLIP is a boolean to specify the sort order."
 
 (defun magrant-machine-parse (line)
   "Convert a LINE from \"vagrant global-status\" to a `tabulated-list-entries' entry."
-  (let ((tab-line (apply #'vector
-                         (-remove 's-blank?
-                                  (s-split " " line)))))
+  (let* ((tab-line (apply #'vector
+                          (-remove 's-blank?
+                                   (s-split " " line))))
+         (state (aref tab-line 3)))
+    (aset tab-line 3 (propertize state 'font-lock-face (magrant-machine-state-face state)))
     (list (aref tab-line 0) tab-line)))
+
+(defun magrant-machine-state-face (state)
+  "Return the correct face according to STATE."
+  (cond
+   ((s-equals? "running" state)
+    'magrant-face-status-up)
+   ((member state '("poweroff" "aborted"))
+    'magrant-face-status-down)
+   ((s-equals? "saved" state)
+    'magrant-face-status-other)
+   (t
+    'magrant-face-status-other)))
 
 
 
@@ -87,10 +98,10 @@ and FLIP is a boolean to specify the sort order."
   (let ((map (make-sparse-keymap)))
     (define-key map "?" #'magrant-machine-help)
 
-    (define-key map "v" #'magrant-machine-validate)
+    (define-key map "c" #'magrant-machine-config)
 
     (define-key map "p" #'magrant-machine-provision)
-    (define-key map "U" #'magrant-machine-up)
+    (define-key map "s" #'magrant-machine-up)
     (define-key map "H" #'magrant-machine-halt)
     (define-key map "S" #'magrant-machine-suspend)
 
@@ -116,13 +127,14 @@ and FLIP is a boolean to specify the sort order."
 
 ;; TRANSIENT: ENTRY POINT
 
-(define-transient-command magrant-machine-help ()
+(transient-define-prefix magrant-machine-help ()
   "Help transient for vagrant machines."
   ["Vagrant machines help"
-   ("v" "Validate" magrant-machine-validate)
+   ("c" "Config" magrant-machine-config)
+
    ("p" "Provision" magrant-machine-provision)
 
-   ("U" "Up (start)" magrant-machine-up)
+   ("s" "Up (start)" magrant-machine-up)
    ("H" "Halt" magrant-machine-halt)
    ("S" "Suspend" magrant-machine-suspend)
 
@@ -130,71 +142,130 @@ and FLIP is a boolean to specify the sort order."
    ("D" "Destroy" magrant-machine-destroy)
    ("l" "List" magrant-machine-list)])
 
-(define-transient-command magrant-machine-list ()
+(transient-define-prefix magrant-machine-list ()
   "Transient for listing machines."
   :man-page "magrant-machine-list"
   ["Actions"
-   ;; NB: `magrant-box-refresh' called by hook, see `magrant-box-mode'
+   ;; NB: `magrant-machine-refresh' called by hook, see `magrant-machine-mode'
    ("l" "List" tablist-revert)])
 
 
 
-;; TRANSIENT: VALIDATE
+;; TRANSIENT: CONFIG
 
-(magrant-utils-define-transient-command
- magrant-machine-validate ()
- "Transient for updating boxes."
- :man-page "magrant-box-update"
- ["Filter arguments"
-  ("-p" "Ignore Provider" "--ignore-provider")]
- [:description magrant-utils-generic-actions-heading
-               ("v" "Validate" magrant-machine--validate-action)])
+(magrant-utils-transient-define-prefix magrant-machine-config ()
+  "Transient related to machine confs."
+  :man-page "magrant-box-config"
+  ["Filter arguments"
+   ("-p" "Ignore Provider" "--ignore-provider")]
+  [:description magrant-utils-generic-actions-heading
+                ("v" "Validate" magrant-machine--validate-config-action)
+                ("f" "Visit" magrant-machine--visit-config-action)])
 
-(defun magrant-machine--validate-action ()
-  "Validate selected boxes."
+(defun magrant-machine--validate-config-action ()
+  "Validate selected machines."
   (interactive)
-  ;; TODO: need to let `default-directory' to "Directory" col and run vagrant validate here...
-  (message "Not yet implemented"))
+  (magrant-machine-generic-action-async "validate" nil))
+
+(defun magrant-machine--visit-config-action ()
+  "Visit selected machines config."
+  (interactive)
+  (--each (tablist-get-marked-items)
+    (let ((dir (magrant-machine-tablist-entry-dir it)))
+      (find-file (concat dir "/Vagrantfile")))))
 
 
 
 ;; TRANSIENT: PROVISION
 
-(defun magrant-machine-provision ()
-  (interactive)
-  (message "Not yet implemented"))
+(magrant-utils-transient-define-prefix magrant-machine-provision ()
+  "Transient for provisioning machines."
+  :man-page "magrant-machine-provision"
+  [:description magrant-utils-generic-actions-heading
+                ("p" "ALL" magrant-machine-generic-action-async)])
 
 
 
 ;; TRANSIENT: START / STOP
 
-(defun magrant-machine-up ()
-  (interactive)
-  (message "Not yet implemented"))
+(magrant-utils-transient-define-prefix magrant-machine-up ()
+  "Transient for starting machines."
+  :man-page "magrant-machine-up"
+  [:description magrant-utils-generic-actions-heading
+                ("s" "Start" magrant-machine-generic-action-async)])
 
-(defun magrant-machine-halt ()
-  (interactive)
-  (message "Not yet implemented"))
+(magrant-utils-transient-define-prefix magrant-machine-halt ()
+  "Transient for halting machines."
+  :man-page "magrant-machine-halt"
+  ["Tune arguments"
+   ("-f" "Force" "-f")]
+  [:description magrant-utils-generic-actions-heading
+                ("H" "Halt" magrant-machine-generic-action-async)])
 
-(defun magrant-machine-suspend ()
-  (interactive)
-  (message "Not yet implemented"))
+(magrant-utils-transient-define-prefix magrant-machine-suspend ()
+  "Transient for suspending machines."
+  :man-page "magrant-machine-suspend"
+  [:description magrant-utils-generic-actions-heading
+                ("S" "Suspend" magrant-machine-generic-action-async)])
 
 
 
 ;; TRANSIENT: CONNECT
 
-(defun magrant-machine-ssh ()
-  (interactive)
-  (message "Not yet implemented"))
+;; TODO: add option to use vagrant-tramp, or maybe even detect IP in Vagrantfile
+
+(magrant-utils-transient-define-prefix magrant-machine-ssh ()
+  "Transient for SSH'ing into machines."
+  :man-page "magrant-machine-ssh"
+  [:description magrant-utils-generic-actions-heading
+                ("b" "SSH" magrant-machine-generic-action-async)])
 
 
 
 ;; TRANSIENT: DESTROY
 
-(defun magrant-machine-destroy ()
-  (interactive)
-  (message "Not yet implemented"))
+(magrant-utils-transient-define-prefix magrant-machine-destroy ()
+  "Transient for destroying machines."
+  :man-page "magrant-machine-destroy"
+  ["Tune arguments"
+   ("-f" "Force" "-f")
+   ("-p" "Parallel" "--parallel")]
+  [:description magrant-utils-generic-actions-heading
+                ("D" "Destroy" magrant-machine-generic-action-async)])
+
+
+
+;; TRANSIENT: HELPERS
+
+(defun magrant-machine-tablist-entry-dir (entry)
+  "Get the \"Directory\" of a tablist ENTRY."
+  (aref (cdr entry) 4))
+
+(defun magrant-machine-get-transient-action ()
+  "Get the vagrant action from the transient name.
+Inspired by `magrant-utils-get-transient-action'."
+  (s-chop-prefix "magrant-machine-" (symbol-name transient-current-command)))
+
+(defun magrant-machine-generic-action-async (action args)
+  "Perform ACTION on selected machines with additional transient ARGS.
+
+Same as `magrant-utils-generic-action' with an additional cd to
+the box dir, needed for vagrant machine actions to know their
+target.
+Additionally, the call is non-blocking and outputs to a newly
+created buffer (for each target)."
+  (interactive (list (magrant-machine-get-transient-action)
+                     (transient-args transient-current-command)))
+  (--each (tablist-get-marked-items)
+    (let* ((dir (magrant-machine-tablist-entry-dir it))
+           (alias (file-name-nondirectory dir))
+           (id (magrant-utils-tablist-entry-id it))
+           (default-directory dir))
+      (magrant-run-vagrant-async action
+                                 (concat
+                                  "*vagrant " action " | " alias "(" id ")*")
+                                 args)))
+  (tablist-revert))
 
 
 
@@ -211,3 +282,5 @@ and FLIP is a boolean to specify the sort order."
 
 
 (provide 'magrant-machine)
+
+;;; magrant-machine.el ends here
