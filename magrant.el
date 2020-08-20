@@ -5,7 +5,11 @@
 ;; Version: 0.1.0
 ;; Keywords: processes, terminals
 ;; URL: https://github.com/p3r7/magrant
+<<<<<<< HEAD
 ;; Package-Requires: ((emacs "25.1")(dash "2.17.0")(s "1.12.0")(tablist "0.70")(transient "0.2.0"))
+=======
+;; Package-Requires: ((emacs "25.1")(cl-lib "0.6.1")(dash "2.17.0")(s "1.12.0")(tablist "0.70")(transient "0.2.0")(friendly-shell-command "0.2.3"))
+>>>>>>> 56a1ec6e6f95addfc288a7d05cdd1579387db768
 ;;
 ;; SPDX-License-Identifier: MIT
 
