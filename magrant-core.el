@@ -1,4 +1,4 @@
-;;; magrant-box.el --- Core utils for magrant  -*- lexical-binding: t -*-
+;;; magrant-core.el --- Core utils for magrant  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019-2020 Jordan Besly
 
