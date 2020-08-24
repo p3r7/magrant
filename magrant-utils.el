@@ -50,7 +50,7 @@
 
 (defun magrant-utils-ensure-items ()
   "Ensure at least one item is selected."
-  (when (null (magrant-utils-get-marked-items-ids))
+  (unless (magrant-utils-get-marked-items-ids)
     (user-error "This action cannot be used on an empty list")))
 
 (defmacro magrant-utils-transient-define-prefix (name arglist &rest args)
