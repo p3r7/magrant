@@ -5,6 +5,11 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
+;;
+;; This sub-module to magrant.el contains all the machine related functions.
+;;
+;; A "machine", in Vagrant lingo, is an instance of a VM/container spawned from a "box" (i.e. a template).
+
 
 ;;; Code:
 

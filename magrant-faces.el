@@ -5,6 +5,9 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
+;;
+;; Font-lock faces for package `magrant'.
+
 
 ;;; Code:
 

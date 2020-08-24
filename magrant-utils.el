@@ -5,6 +5,11 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
+;;
+;; Util functions for package `magrant'.
+;;
+;; Some of them are built on top of the most primitive functions in magrant-core.el
+
 
 ;;; Code:
 

@@ -5,6 +5,9 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
+;;
+;; Core declarations (group, most basic functions) for packatge `magrant'.
+
 
 ;;; Code:
 

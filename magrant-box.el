@@ -5,9 +5,13 @@
 ;; SPDX-License-Identifier: MIT
 
 ;;; Commentary:
+;;
+;; This sub-module to magrant.el contains all the box related functions.
+;;
+;; A "box", in Vagrant lingo, is a pre-configured VM/container template that can be used a a basis to create "machines" (instances).
+
 
 ;;; Code:
-
 
 
 ;; REQUIRES
