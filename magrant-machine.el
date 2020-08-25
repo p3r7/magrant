@@ -41,7 +41,7 @@
 This should be a cons cell (NAME . FLIP) where
 NAME is a string matching one of the column names
 and FLIP is a boolean to specify the sort order."
-  :group 'magrant-box
+  :group 'magrant-machine
   :type '(cons (choice (const "Id")
                        (const "Name")
                        (const "Provider")
